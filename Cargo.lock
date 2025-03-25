@@ -2047,6 +2047,15 @@ name = "game-1"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "game_lab_utils",
+ "log",
+]
+
+[[package]]
+name = "game_lab_utils"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
