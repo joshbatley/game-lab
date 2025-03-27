@@ -42,7 +42,7 @@ impl Plugin for PlayerPlugin {
             .add_systems(Startup, setup_player)
             .add_systems(
                 Update,
-                (move_player, create_directions_for_player, transform_player, update_player_position),
+                (move_player, create_directions_for_player, transform_player, update_player_position,),
             );
     }
 }

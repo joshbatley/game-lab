@@ -2,7 +2,7 @@
 resolver = "2"
 members = ["crates/game_lab_utils",
     "projects/game-1"
-]
+, "projects/game-2-farmer"]
 
 # Enable a small amount of optimization in the dev profile.
 #[profile.dev]
