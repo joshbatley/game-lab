@@ -8,25 +8,25 @@ use bevy_egui::egui::Color32;
 use game_lab_utils::debug_plugin::DebugState;
 use crate::player::animation::{PlayerAnimation, PlayerAnimationsIndices};
 use crate::player::player::{Player};
-use crate::player::{AnimationStates, Directions, PlayerDirection, PLAYER_SPRITE_SIZE};
+use crate::player::{AnimationState, Direction, PlayerAnimationState, PlayerDirection, PLAYER_SPRITE_SIZE};
 
-impl Display for AnimationStates {
+impl Display for AnimationState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AnimationStates::Idle => write!(f, "Idle"),
-            AnimationStates::Walking => write!(f, "Walking"),
-            AnimationStates::Running => write!(f, "Running"),
+            AnimationState::Idle => write!(f, "Idle"),
+            AnimationState::Walking => write!(f, "Walking"),
+            AnimationState::Running => write!(f, "Running"),
         }
     }
 }
 
-impl Display for Directions {
+impl Display for Direction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Directions::Left => write!(f, "Left"),
-            Directions::Right => write!(f, "Right"),
-            Directions::Up => write!(f, "Up"),
-            Directions::Down => write!(f, "Down"),
+            Direction::Left => write!(f, "Left"),
+            Direction::Right => write!(f, "Right"),
+            Direction::Up => write!(f, "Up"),
+            Direction::Down => write!(f, "Down"),
         }
     }
 }
@@ -47,11 +47,11 @@ pub fn draw_bounding_box(
     );
 }
 
-pub fn debug_player_state(mut ctx: EguiContexts, debug_state: ResMut<DebugState>, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerAnimation)>) {
+pub fn debug_player_state(mut ctx: EguiContexts, debug_state: ResMut<DebugState>, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerAnimation, &PlayerAnimationState)>) {
     if !debug_state.enabled {
         return;
     }
-    let (player, _, animation_indices, direction, animation) = query.into_inner();
+    let (_, _, animation_indices, direction, animation, state) = query.into_inner();
     egui::Window::new("PlayerState").max_width(300.0).resizable([false,false]).movable(false).show(ctx.ctx_mut(), |ui| {
         ui.scope(|ui| {
 
@@ -62,7 +62,7 @@ pub fn debug_player_state(mut ctx: EguiContexts, debug_state: ResMut<DebugState>
                 .max_col_width(150.0)
                 .show(ui, |ui| {
                     ui.colored_label(Color32::WHITE, "State:");
-                    ui.label(format!("{}", player.state));
+                    ui.label(format!("{}", state.0));
                     ui.end_row();
 
                     ui.label("Direction:");

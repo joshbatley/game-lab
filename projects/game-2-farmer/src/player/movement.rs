@@ -1,55 +1,54 @@
-use bevy::input::ButtonInput;
-use bevy::prelude::{EventWriter, KeyCode, Res, Single, Transform};
+use bevy::log::info;
+use bevy::prelude::{Event, EventReader, EventWriter, Single, Trigger, With};
+use crate::controller::{Action, ActionEvent};
 use crate::player::player::{Player};
-use crate::player::{AnimationStates, Directions, PlayerDirectionChange, PlayerStateChange};
+use crate::player::{AnimationState, Direction, PlayerDirection, PlayerDirectionChange, PlayerAnimationChange};
 
-pub fn move_player(
-    mut state_writer: EventWriter<PlayerStateChange>,
+#[derive(Event)]
+pub struct PlayerMovementEvent(pub Direction);
+
+pub fn modify_player_direction(
+    trigger: Trigger<ActionEvent>,
     mut direction_writer: EventWriter<PlayerDirectionChange>,
-    keys: Res<ButtonInput<KeyCode>>,
-    player_q: Single<(&mut Transform, &mut Player)>,
+    player: Single<&PlayerDirection, With<Player>>
 ) {
-    let (mut transform, player) = player_q.into_inner();
-    let is_running = keys.pressed(KeyCode::ShiftLeft);
-    let speed = if is_running { player.run_speed } else { player.walk_speed };
-    let mut new_state = if is_running { AnimationStates::Running } else { AnimationStates::Walking };
-
-    let preformed = vec![
-        key_action(KeyCode::KeyW, Directions::Up, speed, &mut transform, &mut direction_writer, &keys),
-        key_action(KeyCode::KeyA, Directions::Left, -speed, &mut transform, &mut direction_writer, &keys),
-        key_action(KeyCode::KeyS, Directions::Down, -speed, &mut transform, &mut direction_writer, &keys),
-        key_action(KeyCode::KeyD, Directions::Right, speed, &mut transform, &mut direction_writer, &keys),
-    ].iter().any(|&x| x);
-
-    if !preformed {
-        new_state = AnimationStates::Idle;
+    let event = trigger.event();
+    if let Action::Look(direction) = event.0 {
+        let direction =  Direction::from_action(direction);
+        if let Some(direction) = direction {
+            if direction != player.0 {
+                direction_writer.send(PlayerDirectionChange(direction));
+            }
+        }
     }
 
-    state_writer.send(PlayerStateChange { new_state });
 }
 
-fn key_action(
-    key: KeyCode,
-    dir: Directions,
-    speed: f32,
-    transform: &mut Transform,
-    direction_writer: &mut EventWriter<PlayerDirectionChange>,
-    keys: &Res<ButtonInput<KeyCode>>,
-) -> bool {
-    let mut preformed = false;
-    if keys.just_pressed(key) {
-        direction_writer.send(PlayerDirectionChange(dir));
-        preformed = true;
+pub fn modify_player_position(
+    trigger: Trigger<ActionEvent>,
+    mut state_writer: EventWriter<PlayerAnimationChange>,
+    mut position_writer: EventWriter<PlayerMovementEvent>,
+    player: Single<&mut Player>,
+) {
+    let event = trigger.event();
+    if let Action::Move(direction) = event.0 {
+        info!("Updating player position, {:?}", direction);
+        let new_state = if player.is_running { AnimationState::Running  } else { AnimationState::Walking };
+        state_writer.send(PlayerAnimationChange { new_state });
+        position_writer.send(PlayerMovementEvent(Direction::from_action(direction).unwrap()));
     }
+}
 
-    if keys.pressed(key) {
-        match dir {
-            Directions::Left => transform.translation.x += speed,
-            Directions::Right => transform.translation.x += speed,
-            Directions::Down => transform.translation.y += speed,
-            Directions::Up => transform.translation.y += speed,
+pub fn apply_modifiers(
+    mut action_reader: EventReader<ActionEvent>,
+    mut player: Single<&mut Player>,
+) {
+    for event in action_reader.read() {
+        let action = event.0;
+        match action {
+            Action::Modifier => player.is_running = true,
+            _ => player.is_running = false
         }
-        preformed = true;
+
     }
-    preformed
 }

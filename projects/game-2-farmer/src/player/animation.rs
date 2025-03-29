@@ -1,5 +1,5 @@
 use bevy::prelude::{Component, Res, Single, Sprite, Time, Timer};
-use crate::player::{Directions};
+use crate::player::{Direction};
 
 #[derive(Component, Debug)]
 pub struct PlayerAnimationsIndices {
@@ -13,7 +13,7 @@ pub struct PlayerAnimation {
     pub timer: Timer,
 }
 impl PlayerAnimationsIndices {
-    pub fn from_dir(dir: Directions, cols: u32) -> Self {
+    pub fn from_dir(dir: Direction, cols: u32) -> Self {
         let first = Self::get_first_index(dir, cols);
 
         Self {
@@ -23,12 +23,12 @@ impl PlayerAnimationsIndices {
         }
     }
 
-    fn get_first_index(dir: Directions, cols: u32) -> usize {
+    fn get_first_index(dir: Direction, cols: u32) -> usize {
         match dir {
-            Directions::Right => 0 * cols as usize,
-            Directions::Left => 1 * cols as usize,
-            Directions::Down => 2 * cols as usize,
-            Directions::Up => 3 * cols as usize,
+            Direction::Right => 0 * cols as usize,
+            Direction::Left => 1 * cols as usize,
+            Direction::Down => 2 * cols as usize,
+            Direction::Up => 3 * cols as usize,
         }
     }
 }
@@ -60,29 +60,29 @@ mod tests {
     #[test]
     fn from_dir() {
         struct TestCase {
-            dir: Directions,
+            dir: Direction,
             expected_first: usize,
             expected_last: usize,
         }
 
         let cases = vec!(
             TestCase {
-                dir: Directions::Right,
+                dir: Direction::Right,
                 expected_first: 0,
                 expected_last: 7,
             },
             TestCase {
-                dir: Directions::Left,
+                dir: Direction::Left,
                 expected_first: 8,
                 expected_last: 15,
             },
             TestCase {
-                dir: Directions::Down,
+                dir: Direction::Down,
                 expected_first: 16,
                 expected_last: 23,
             },
             TestCase {
-                dir: Directions::Up,
+                dir: Direction::Up,
                 expected_first: 24,
                 expected_last: 31,
             },
@@ -98,29 +98,29 @@ mod tests {
     #[test]
     fn from_dir_4() {
         struct TestCase {
-            dir: Directions,
+            dir: Direction,
             expected_first: usize,
             expected_last: usize,
         }
 
         let cases = vec!(
             TestCase {
-                dir: Directions::Right,
+                dir: Direction::Right,
                 expected_first: 0,
                 expected_last: 3,
             },
             TestCase {
-                dir: Directions::Left,
+                dir: Direction::Left,
                 expected_first: 4,
                 expected_last: 7,
             },
             TestCase {
-                dir: Directions::Down,
+                dir: Direction::Down,
                 expected_first: 8,
                 expected_last: 11,
             },
             TestCase {
-                dir: Directions::Up,
+                dir: Direction::Up,
                 expected_first: 12,
                 expected_last: 15,
             },

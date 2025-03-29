@@ -1,28 +1,31 @@
-use std::collections::HashMap;
 use crate::asset_folder;
+use crate::player::{AnimationState, PlayerAnimationState};
 use crate::player::animation::{PlayerAnimation, PlayerAnimationsIndices};
-use crate::player::{Directions, PlayerDirection, PlayerDirectionChange, PlayerResource, PlayerSpriteSheet, PlayerStateChange, PLAYER_HEIGHT, PLAYER_PADDING, PLAYER_SPRITE_SIZE, PLAYER_WIDTH, SPRITE_SHEET_CONFIG};
+use crate::player::{
+    Direction, PLAYER_HEIGHT, PLAYER_PADDING, PLAYER_SPRITE_SIZE, PLAYER_WIDTH, PlayerDirection,
+    PlayerDirectionChange, PlayerResource, PlayerSpriteSheet, PlayerAnimationChange,
+    SPRITE_SHEET_CONFIG,
+};
 use bevy::asset::{AssetServer, Assets};
-use bevy::log::info;
+// use bevy::log::info;
 use bevy::math::{uvec2, vec2};
 use bevy::prelude::*;
 use bevy::sprite::Sprite;
 use game_lab_utils::texture_atlas_layout::texture_atlas_layout_with_padding;
+use std::collections::HashMap;
 use std::time::Duration;
-use crate::player::AnimationStates;
+use crate::player::movement::PlayerMovementEvent;
 
 #[derive(Component)]
 pub struct Player {
     pub walk_speed: f32,
     pub run_speed: f32,
-    pub state: AnimationStates,
+    pub is_running: bool,
 }
 
-pub fn initialize_player_resources(
-    mut commands: Commands,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    asset_server: Res<AssetServer>,
-) {
+
+
+pub fn initialize_player_resources(mut commands: Commands, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, asset_server: Res<AssetServer>) {
     let mut sprite_sheet_config = HashMap::new();
     for (state, image_url, cols, rows, animation_time) in SPRITE_SHEET_CONFIG {
         let atlas = texture_atlas_layout_with_padding(uvec2(PLAYER_HEIGHT, PLAYER_WIDTH), cols, rows, PLAYER_PADDING);
@@ -35,22 +38,21 @@ pub fn initialize_player_resources(
         ));
     }
 
-    commands.insert_resource(PlayerResource {
-        sprite_sheet_config
-    });
+    commands.insert_resource(PlayerResource { sprite_sheet_config });
 }
 
 pub fn initialize_player(mut commands: Commands, player_resources: Res<PlayerResource>) {
-    let default_state = player_resources.sprite_sheet_config.get(&AnimationStates::default()).unwrap();
-    let animation_indices = PlayerAnimationsIndices::from_dir(Directions::default(), default_state.column_size);
+    let default_state = player_resources.sprite_sheet_config.get(&AnimationState::default()).unwrap();
+    let animation_indices = PlayerAnimationsIndices::from_dir(Direction::default(), default_state.column_size);
 
     commands.spawn((
         Player {
             walk_speed: 1.3,
             run_speed: 2.0,
-            state: AnimationStates::default(),
+            is_running: false,
         },
-        PlayerDirection(Directions::default()),
+        PlayerAnimationState(AnimationState::default()),
+        PlayerDirection(Direction::default()),
         Sprite {
             image: default_state.image_handle.clone(),
             texture_atlas: Some(TextureAtlas {
@@ -71,41 +73,50 @@ pub fn initialize_player(mut commands: Commands, player_resources: Res<PlayerRes
 pub fn update_player_direction(
     mut reader: EventReader<PlayerDirectionChange>,
     mut commands: Commands,
-    player_ent: Single<(Entity, &Player)>,
+    player_ent: Single<(Entity, &PlayerAnimationState, &mut PlayerDirection)>,
     player_resource: Res<PlayerResource>,
 ) {
-    let (entity, player) = player_ent.into_inner();
+    let (entity, animation_state, mut player_direction) = player_ent.into_inner();
     for event in reader.read() {
-        let direction = event.0;
+        let new_direction = event.0;
+        if new_direction == player_direction.0 {
+            return;
+        }
 
-        info!("Updating player direction, {:?}", direction);
-        let columns = player_resource.sprite_sheet_config.get(&player.state).unwrap().column_size;
+        // info!("Updating player direction, {:?}", new_direction);
+        let columns = player_resource.sprite_sheet_config.get(&animation_state.0).unwrap().column_size;
+        player_direction.0 = new_direction;
+
         commands
             .entity(entity)
-            .insert(PlayerAnimationsIndices::from_dir(direction, columns))
-            .insert(PlayerDirection(direction));
+            .insert(PlayerAnimationsIndices::from_dir(new_direction, columns));
     }
 }
 
 
-pub fn update_player_state(mut reader: EventReader<PlayerStateChange>, mut player: Single<&mut Player>) {
+pub fn update_animation_state(mut reader: EventReader<PlayerAnimationChange>, mut state: Single<&mut PlayerAnimationState>) {
+    if reader.is_empty() && state.0 != AnimationState::Idle {
+        // info!("No Events setting to \x1b[31mIdle\x1b[0m");
+        state.0 =  AnimationState::Idle;
+    }
+
     for event in reader.read() {
-        if event.new_state == player.state {
+        if event.new_state == state.0 {
             continue;
         }
 
-        info!("Updating player State, {:?}", player.state);
-        player.state = event.new_state;
+        // info!("Updating player State \x1b[31m{:?}\x1b[0m to \x1b[31m{:?}\x1b[0m", state.0, event.new_state);
+        state.0 = event.new_state;
     }
 }
 
 pub fn update_player_sprite_sheet(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Sprite, &Player, &PlayerDirection), Changed<Player>>,
+    mut query: Query<(Entity, &mut Sprite, &PlayerAnimationState, &PlayerDirection), Changed<PlayerAnimationState>>,
     player_resource: Res<PlayerResource>,
 ) {
-    for (entity, mut sprite, player, direction) in query.iter_mut() {
-        let config = player_resource.sprite_sheet_config.get(&player.state).unwrap();
+    for (entity, mut sprite, state, direction) in query.iter_mut() {
+        let config = player_resource.sprite_sheet_config.get(&state.0).unwrap();
         let n_animation_indices = PlayerAnimationsIndices::from_dir(direction.0, config.column_size);
 
         sprite.image = config.image_handle.clone();
@@ -119,6 +130,20 @@ pub fn update_player_sprite_sheet(
     }
 }
 
-
-// TODO:
-// 3. Fix character controls - maybe start building the firs controller for it?
+pub fn move_player(
+    mut reader: EventReader<PlayerMovementEvent>,
+    player_q: Single<(&mut Transform, &Player)>,
+) {
+    let (mut transform, player) = player_q.into_inner();
+    let running =  player.is_running;
+    let speed = if running { player.run_speed } else { player.walk_speed };
+    for event in reader.read() {
+        let direction = event.0;
+        match direction {
+            Direction::Up => transform.translation.y += speed,
+            Direction::Left => transform.translation.x += -speed,
+            Direction::Down => transform.translation.y += -speed,
+            Direction::Right => transform.translation.x += speed,
+        }
+    }
+}
