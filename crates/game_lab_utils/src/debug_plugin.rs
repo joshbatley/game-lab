@@ -6,6 +6,7 @@ use bevy_egui::egui::{FontId, TextStyle};
 use bevy_egui::egui::FontFamily::{Monospace, Proportional};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use bevy_egui::egui::epaint::text::{FontInsert, InsertFontFamily};
+use crate::diagnostic_plugin::DiagnosticPlugin;
 
 #[derive(Resource)]
 pub struct DebugState {
@@ -21,6 +22,7 @@ impl Plugin for DebugPlugin {
         app
             .insert_resource(DebugState { enabled: self.enabled })
             .add_plugins(EguiPlugin)
+            .add_plugins(DiagnosticPlugin)
             .add_systems(Startup, load_and_set_egui_fonts)
             .add_systems(Update, toggle_debug);
     }

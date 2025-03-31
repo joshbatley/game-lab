@@ -19,20 +19,24 @@ use bevy::prelude::{Component, Event, KeyCode, Resource};
 // - Support for multiple keys to one actions
 
 #[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
-pub enum ActionDirections {
+pub enum Direction {
     North,
     East,
     South,
     West,
 }
 
+impl Default for Direction {
+    fn default() -> Self { Direction::South }
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Hash, Debug)]
 pub enum Action {
     // Movement Directions
-    Move(ActionDirections),
+    Move(Direction),
 
     // Look Directions
-    Look(ActionDirections),
+    Look(Direction),
 
     // Actions - Events
     Interact,   // e?
@@ -45,7 +49,7 @@ pub enum Action {
 }
 
 #[derive(Event)]
-pub struct ActionEvent(pub Action);
+pub struct ActionEvent(pub Action, pub i32);
 
 #[derive(Component)]
 struct Controller {

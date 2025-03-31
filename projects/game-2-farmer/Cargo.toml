@@ -7,3 +7,4 @@ edition = "2024"
 bevy = "0.15"
 game_lab_utils = { path = "../../crates/game_lab_utils" }
 bevy_egui = { version = "0.33" }
+log = "0.4.26"

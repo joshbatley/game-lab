@@ -5,9 +5,8 @@ use bevy::prelude::{GizmoPrimitive2d, Gizmos, Rectangle, Single, Transform, With
 use bevy::sprite::Sprite;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::Color32;
-use crate::player::animation::{PlayerAnimation, PlayerAnimationsIndices};
-use crate::player::player::{Player};
-use crate::player::{AnimationState, Direction, PlayerAnimationState, PlayerDirection, PLAYER_SPRITE_SIZE};
+use crate::player::animation::{PlayerTimers, PlayerAnimationsIndices, AnimationState, PlayerAnimationState};
+use crate::player::player::{Player, PlayerDirection};
 
 impl Display for AnimationState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -19,30 +18,23 @@ impl Display for AnimationState {
     }
 }
 
-impl Display for Direction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Direction::Left => write!(f, "Left"),
-            Direction::Right => write!(f, "Right"),
-            Direction::Up => write!(f, "Up"),
-            Direction::Down => write!(f, "Down"),
-        }
-    }
-}
-
 pub fn draw_bounding_box(
     mut gizmos: Gizmos,
-    player: Single<&Transform, With<Player>>,
+    player: Single<(&Transform, &Sprite), With<Player>>,
 ) {
+    let (transform, sprite) = player.into_inner();
+    let mut translation = transform.translation.truncate();
+    let size = sprite.custom_size.unwrap_or_default();
+    translation.y = translation.y + (size.y / 2.0);
     gizmos.primitive_2d(
-        &Rectangle::new(PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE),
-        Isometry2d::from_translation(player.translation.truncate()),
+        &Rectangle::new(size.x, size.y),
+        Isometry2d::from_translation(translation),
         GREY,
     );
 }
 
-pub fn debug_player_state(mut ctx: EguiContexts, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerAnimation, &PlayerAnimationState)>) {
-    let (_, _, animation_indices, direction, animation, state) = query.into_inner();
+pub fn debug_player_state(mut ctx: EguiContexts, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerTimers, &PlayerAnimationState)>) {
+    let (player, sprite, animation_indices, direction, timers, state) = query.into_inner();
     egui::Window::new("PlayerState").max_width(300.0).resizable([false,false]).movable(false).show(ctx.ctx_mut(), |ui| {
         ui.scope(|ui| {
 
@@ -64,8 +56,16 @@ pub fn debug_player_state(mut ctx: EguiContexts, query: Single<(&Player, &Sprite
                     ui.label(format!("{:?}", animation_indices));
                     ui.end_row();
 
+                    ui.label("Animations index:");
+                    ui.label(format!("{:?}", sprite.texture_atlas.clone().unwrap().index.clone() % animation_indices.column_size));
+                    ui.end_row();
+
                     ui.label("Animations Time:");
-                    ui.label(format!("{:?}", animation.timer.duration()));
+                    ui.label(format!("{:?}", timers.animations.duration()));
+                    ui.end_row();
+
+                    ui.label("is_running:");
+                    ui.label(format!("{:?}", player.is_running));
                     ui.end_row();
                 });
         });

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use bevy::prelude::{Res, Single};
 use bevy_egui::{egui, EguiContexts};
-use crate::controller::{Action, Controller, ControllerSettings};
+use crate::controller::{Action, Controller, ControllerSettings, Direction};
 
 impl Display for Action {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -13,6 +13,17 @@ impl Display for Action {
             Action::Modifier => write!(f, "Modifier"),
             Action::Sneak => write!(f, "Sneak"),
             Action::Pause => write!(f, "Pause"),
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Direction::North => write!(f, "North"),
+            Direction::East => write!(f, "East"),
+            Direction::South => write!(f, "South"),
+            Direction::West => write!(f, "West"),
         }
     }
 }

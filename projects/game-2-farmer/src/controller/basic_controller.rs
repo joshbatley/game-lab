@@ -1,28 +1,28 @@
 use std::collections::HashMap;
 use bevy::input::ButtonInput;
 use bevy::prelude::{Commands, EventWriter, KeyCode, Res, Single};
-use crate::controller::{Action, ActionDirections, ActionEvent, Controller, ControllerSettings};
+use crate::controller::{Action, Direction, ActionEvent, Controller, ControllerSettings};
 
 const MOVE_DIRECTIONS: [Action; 4] = [
-    Action::Move(ActionDirections::North), Action::Move(ActionDirections::West),
-    Action::Move(ActionDirections::South), Action::Move(ActionDirections::East)];
+    Action::Move(Direction::North), Action::Move(Direction::West),
+    Action::Move(Direction::South), Action::Move(Direction::East)];
 
 const LOOK_DIRECTIONS: [Action; 4] = [
-    Action::Look(ActionDirections::North), Action::Look(ActionDirections::West),
-    Action::Look(ActionDirections::South), Action::Look(ActionDirections::East)];
+    Action::Look(Direction::North), Action::Look(Direction::West),
+    Action::Look(Direction::South), Action::Look(Direction::East)];
 
 pub fn initialize_basic_controller(mut commands: Commands) {
     let mut controls = HashMap::new();
 
-    controls.insert(Action::Look(ActionDirections::North), KeyCode::KeyW);
-    controls.insert(Action::Look(ActionDirections::East), KeyCode::KeyD);
-    controls.insert(Action::Look(ActionDirections::South), KeyCode::KeyS);
-    controls.insert(Action::Look(ActionDirections::West), KeyCode::KeyA);
+    controls.insert(Action::Look(Direction::North), KeyCode::KeyW);
+    controls.insert(Action::Look(Direction::East), KeyCode::KeyD);
+    controls.insert(Action::Look(Direction::South), KeyCode::KeyS);
+    controls.insert(Action::Look(Direction::West), KeyCode::KeyA);
 
-    controls.insert(Action::Move(ActionDirections::North), KeyCode::KeyW);
-    controls.insert(Action::Move(ActionDirections::East), KeyCode::KeyD);
-    controls.insert(Action::Move(ActionDirections::South), KeyCode::KeyS);
-    controls.insert(Action::Move(ActionDirections::West), KeyCode::KeyA);
+    controls.insert(Action::Move(Direction::North), KeyCode::KeyW);
+    controls.insert(Action::Move(Direction::East), KeyCode::KeyD);
+    controls.insert(Action::Move(Direction::South), KeyCode::KeyS);
+    controls.insert(Action::Move(Direction::West), KeyCode::KeyA);
 
     controls.insert(Action::Interact, KeyCode::KeyE);
     controls.insert(Action::Modifier, KeyCode::ShiftLeft);
@@ -54,7 +54,7 @@ pub fn movement_controller(
     }
 
     if !controller.last_move_action.is_empty() {
-        commands.trigger(ActionEvent(controller.last_move_action[controller.last_move_action.len()-1]));
+        commands.trigger(ActionEvent(controller.last_move_action[controller.last_move_action.len()-1], 1));
     }
 }
 
@@ -82,7 +82,7 @@ pub fn look_controller(
         };
 
         if new_direction.is_some() {
-            commands.trigger(ActionEvent(new_direction.unwrap()));
+            commands.trigger(ActionEvent(new_direction.unwrap(), 1));
         }
     }
 }
@@ -95,22 +95,37 @@ pub fn modifier_controller(
 ) {
 
     if keys.pressed(settings.controls[&Action::Modifier]) && keys.any_pressed(settings.actions_to_keys(MOVE_DIRECTIONS)) {
-        action_writer.send(ActionEvent(Action::Modifier));
+        action_writer.send(ActionEvent(Action::Modifier, 1));
+    }
+    if keys.just_released(settings.controls[&Action::Modifier]) {
+        action_writer.send(ActionEvent(Action::Modifier, 0));
     }
 
     if keys.pressed(settings.controls[&Action::Interact]) {
-        action_writer.send(ActionEvent(Action::Interact));
+        action_writer.send(ActionEvent(Action::Interact, 1));
+    }
+    if keys.just_released(settings.controls[&Action::Interact]) {
+        action_writer.send(ActionEvent(Action::Interact, 0));
     }
 
     if keys.pressed(settings.controls[&Action::Jump]) {
-        action_writer.send(ActionEvent(Action::Jump));
+        action_writer.send(ActionEvent(Action::Jump, 1));
+    }
+    if keys.just_released(settings.controls[&Action::Jump]) {
+        action_writer.send(ActionEvent(Action::Jump, 0));
     }
 
     if keys.pressed(settings.controls[&Action::Pause]) {
-        action_writer.send(ActionEvent(Action::Pause));
+        action_writer.send(ActionEvent(Action::Pause, 1));
+    }
+    if keys.just_released(settings.controls[&Action::Pause]) {
+        action_writer.send(ActionEvent(Action::Pause, 0));
     }
 
     if keys.pressed(settings.controls[&Action::Sneak]) {
-        action_writer.send(ActionEvent(Action::Sneak));
+        action_writer.send(ActionEvent(Action::Sneak, 1));
+    }
+    if keys.just_released(settings.controls[&Action::Sneak]) {
+        action_writer.send(ActionEvent(Action::Sneak, 0));
     }
 }

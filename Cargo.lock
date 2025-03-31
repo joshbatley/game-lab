@@ -2333,6 +2333,7 @@ dependencies = [
  "bevy",
  "bevy_egui",
  "game_lab_utils",
+ "log",
 ]
 
 [[package]]
