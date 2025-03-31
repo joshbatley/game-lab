@@ -1,11 +1,10 @@
 use std::fmt::{Display};
 use bevy::color::palettes::css::GREY;
 use bevy::math::Isometry2d;
-use bevy::prelude::{GizmoPrimitive2d, Gizmos, Rectangle, Res, ResMut, Single, Transform, With};
+use bevy::prelude::{GizmoPrimitive2d, Gizmos, Rectangle, Single, Transform, With};
 use bevy::sprite::Sprite;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::Color32;
-use game_lab_utils::debug_plugin::DebugState;
 use crate::player::animation::{PlayerAnimation, PlayerAnimationsIndices};
 use crate::player::player::{Player};
 use crate::player::{AnimationState, Direction, PlayerAnimationState, PlayerDirection, PLAYER_SPRITE_SIZE};
@@ -33,13 +32,8 @@ impl Display for Direction {
 
 pub fn draw_bounding_box(
     mut gizmos: Gizmos,
-    engine_state: Res<DebugState>,
     player: Single<&Transform, With<Player>>,
 ) {
-    if !engine_state.enabled {
-        return;
-    }
-
     gizmos.primitive_2d(
         &Rectangle::new(PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE),
         Isometry2d::from_translation(player.translation.truncate()),
@@ -47,10 +41,7 @@ pub fn draw_bounding_box(
     );
 }
 
-pub fn debug_player_state(mut ctx: EguiContexts, debug_state: ResMut<DebugState>, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerAnimation, &PlayerAnimationState)>) {
-    if !debug_state.enabled {
-        return;
-    }
+pub fn debug_player_state(mut ctx: EguiContexts, query: Single<(&Player, &Sprite, &PlayerAnimationsIndices, &PlayerDirection, &PlayerAnimation, &PlayerAnimationState)>) {
     let (_, _, animation_indices, direction, animation, state) = query.into_inner();
     egui::Window::new("PlayerState").max_width(300.0).resizable([false,false]).movable(false).show(ctx.ctx_mut(), |ui| {
         ui.scope(|ui| {
@@ -78,9 +69,5 @@ pub fn debug_player_state(mut ctx: EguiContexts, debug_state: ResMut<DebugState>
                     ui.end_row();
                 });
         });
-
-
     });
-
 }
-

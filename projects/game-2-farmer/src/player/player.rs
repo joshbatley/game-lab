@@ -7,23 +7,21 @@ use crate::player::{
     SPRITE_SHEET_CONFIG,
 };
 use bevy::asset::{AssetServer, Assets};
-// use bevy::log::info;
 use bevy::math::{uvec2, vec2};
 use bevy::prelude::*;
 use bevy::sprite::Sprite;
 use game_lab_utils::texture_atlas_layout::texture_atlas_layout_with_padding;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::time::Duration;
 use crate::player::movement::PlayerMovementEvent;
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct Player {
     pub walk_speed: f32,
     pub run_speed: f32,
     pub is_running: bool,
 }
-
-
 
 pub fn initialize_player_resources(mut commands: Commands, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, asset_server: Res<AssetServer>) {
     let mut sprite_sheet_config = HashMap::new();
@@ -83,7 +81,6 @@ pub fn update_player_direction(
             return;
         }
 
-        // info!("Updating player direction, {:?}", new_direction);
         let columns = player_resource.sprite_sheet_config.get(&animation_state.0).unwrap().column_size;
         player_direction.0 = new_direction;
 
@@ -96,7 +93,6 @@ pub fn update_player_direction(
 
 pub fn update_animation_state(mut reader: EventReader<PlayerAnimationChange>, mut state: Single<&mut PlayerAnimationState>) {
     if reader.is_empty() && state.0 != AnimationState::Idle {
-        // info!("No Events setting to \x1b[31mIdle\x1b[0m");
         state.0 =  AnimationState::Idle;
     }
 
@@ -105,7 +101,6 @@ pub fn update_animation_state(mut reader: EventReader<PlayerAnimationChange>, mu
             continue;
         }
 
-        // info!("Updating player State \x1b[31m{:?}\x1b[0m to \x1b[31m{:?}\x1b[0m", state.0, event.new_state);
         state.0 = event.new_state;
     }
 }

@@ -1,4 +1,3 @@
-use bevy::log::info;
 use bevy::prelude::{Event, EventReader, EventWriter, Single, Trigger, With};
 use crate::controller::{Action, ActionEvent};
 use crate::player::player::{Player};
@@ -21,7 +20,6 @@ pub fn modify_player_direction(
             }
         }
     }
-
 }
 
 pub fn modify_player_position(
@@ -32,7 +30,6 @@ pub fn modify_player_position(
 ) {
     let event = trigger.event();
     if let Action::Move(direction) = event.0 {
-        info!("Updating player position, {:?}", direction);
         let new_state = if player.is_running { AnimationState::Running  } else { AnimationState::Walking };
         state_writer.send(PlayerAnimationChange { new_state });
         position_writer.send(PlayerMovementEvent(Direction::from_action(direction).unwrap()));
@@ -49,6 +46,5 @@ pub fn apply_modifiers(
             Action::Modifier => player.is_running = true,
             _ => player.is_running = false
         }
-
     }
 }

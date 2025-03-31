@@ -8,7 +8,7 @@ use bevy::prelude::{ImagePlugin, PluginGroup};
 use game_lab_utils::internal_asset_plugin::InternalAssetPlugin;
 use game_lab_utils::debug_plugin::{DebugPlugin};
 use crate::camera::initialize_camera;
-use crate::controller::ControllerPlugin;
+use crate::controller::plugin::ControllerPlugin;
 use crate::player::plugin::PlayerPlugin;
 
 const ASSET_ROOT_FOLDER: &str = "hana-caraka";
