@@ -11,6 +11,11 @@ const LOOK_DIRECTIONS: [Action; 4] = [
     Action::Look(Direction::North), Action::Look(Direction::West),
     Action::Look(Direction::South), Action::Look(Direction::East)];
 
+const MODIFIER_ACTIONS: [Action; 5] = [
+    Action::Modifier, Action::Interact,
+    Action::Jump, Action::Pause, Action::Sneak
+];
+
 pub fn initialize_basic_controller(mut commands: Commands) {
     let mut controls = HashMap::new();
 
@@ -98,39 +103,12 @@ pub fn modifier_controller(
     keys: Res<ButtonInput<KeyCode>>,
     settings: Res<ControllerSettings>,
 ) {
-
-    if keys.pressed(settings.controls[&Action::Modifier]) && keys.any_pressed(settings.actions_to_keys(MOVE_DIRECTIONS)) {
-        action_writer.send(ActionEvent(Action::Modifier, 1));
-    }
-    if keys.just_released(settings.controls[&Action::Modifier]) {
-        action_writer.send(ActionEvent(Action::Modifier, 0));
-    }
-
-    if keys.pressed(settings.controls[&Action::Interact]) {
-        action_writer.send(ActionEvent(Action::Interact, 1));
-    }
-    if keys.just_released(settings.controls[&Action::Interact]) {
-        action_writer.send(ActionEvent(Action::Interact, 0));
-    }
-
-    if keys.pressed(settings.controls[&Action::Jump]) {
-        action_writer.send(ActionEvent(Action::Jump, 1));
-    }
-    if keys.just_released(settings.controls[&Action::Jump]) {
-        action_writer.send(ActionEvent(Action::Jump, 0));
-    }
-
-    if keys.pressed(settings.controls[&Action::Pause]) {
-        action_writer.send(ActionEvent(Action::Pause, 1));
-    }
-    if keys.just_released(settings.controls[&Action::Pause]) {
-        action_writer.send(ActionEvent(Action::Pause, 0));
-    }
-
-    if keys.pressed(settings.controls[&Action::Sneak]) {
-        action_writer.send(ActionEvent(Action::Sneak, 1));
-    }
-    if keys.just_released(settings.controls[&Action::Sneak]) {
-        action_writer.send(ActionEvent(Action::Sneak, 0));
+    for actions in MODIFIER_ACTIONS {
+        if keys.pressed(settings.controls[&actions])  {
+            action_writer.send(ActionEvent(actions, 1));
+        }
+        if keys.just_released(settings.controls[&actions]) {
+            action_writer.send(ActionEvent(actions, 0));
+        }
     }
 }
