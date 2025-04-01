@@ -1,12 +1,12 @@
 use std::fmt::{Display};
-use bevy::color::palettes::css::GREY;
+use bevy::color::palettes::css::{RED, BLUE, GREEN};
 use bevy::math::Isometry2d;
 use bevy::prelude::{GizmoPrimitive2d, Gizmos, Rectangle, Single, Transform, With};
 use bevy::sprite::Sprite;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::Color32;
 use crate::player::animation::{PlayerTimers, PlayerAnimationsIndices, AnimationState, PlayerAnimationState};
-use crate::player::player::{Player, PlayerDirection};
+use crate::player::player::{Player, PlayerDirection, PlayerTarget};
 
 impl Display for AnimationState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -18,18 +18,31 @@ impl Display for AnimationState {
     }
 }
 
-pub fn draw_bounding_box(
+pub fn draw_target_block(mut gizmos: Gizmos, target: Single<&Transform, With<PlayerTarget>>) {
+    let translation = target.translation.truncate();
+    gizmos.primitive_2d(
+            &Rectangle::new(48.0, 48.0),
+            Isometry2d::from_translation(translation),
+            RED,
+        );
+}
+
+pub fn draw_sprite_bounding_box(
     mut gizmos: Gizmos,
     player: Single<(&Transform, &Sprite), With<Player>>,
 ) {
     let (transform, sprite) = player.into_inner();
-    let mut translation = transform.translation.truncate();
+    let translation = transform.translation.truncate();
     let size = sprite.custom_size.unwrap_or_default();
-    translation.y = translation.y + (size.y / 2.0);
     gizmos.primitive_2d(
         &Rectangle::new(size.x, size.y),
         Isometry2d::from_translation(translation),
-        GREY,
+        BLUE,
+    );
+    gizmos.primitive_2d(
+        &Rectangle::new(4.0 ,4.0),
+        Isometry2d::from_translation(translation),
+        GREEN,
     );
 }
 

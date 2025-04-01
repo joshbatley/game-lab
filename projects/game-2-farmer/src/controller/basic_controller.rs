@@ -19,6 +19,11 @@ pub fn initialize_basic_controller(mut commands: Commands) {
     controls.insert(Action::Look(Direction::South), KeyCode::KeyS);
     controls.insert(Action::Look(Direction::West), KeyCode::KeyA);
 
+    // controls.insert(Action::Look(Direction::North), KeyCode::ArrowUp);
+    // controls.insert(Action::Look(Direction::East), KeyCode::ArrowRight);
+    // controls.insert(Action::Look(Direction::South), KeyCode::ArrowDown);
+    // controls.insert(Action::Look(Direction::West), KeyCode::ArrowLeft);
+
     controls.insert(Action::Move(Direction::North), KeyCode::KeyW);
     controls.insert(Action::Move(Direction::East), KeyCode::KeyD);
     controls.insert(Action::Move(Direction::South), KeyCode::KeyS);

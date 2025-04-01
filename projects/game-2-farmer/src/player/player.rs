@@ -4,10 +4,11 @@ use crate::player::controller::{PlayerDirectionChange, PlayerMovementEvent};
 use crate::player::sprite_sheet::{PlayerSpriteSheet, SPRITE_SHEET_CONFIG};
 use bevy::asset::{AssetServer, Assets};
 use bevy::prelude::*;
-use bevy::sprite::{Anchor, Sprite};
+use bevy::sprite::{Sprite};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::time::Duration;
+use bevy::math::vec2;
 use crate::controller::Direction;
 
 #[derive(Component, Clone, Debug)]
@@ -24,6 +25,11 @@ pub struct PlayerResource {
 
 #[derive(Component)]
 pub struct PlayerDirection(pub Direction);
+
+#[derive(Component)]
+pub struct PlayerTarget {
+    pub size: Vec2,
+}
 
 pub fn initialize_player_resources(mut commands: Commands, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>, asset_server: Res<AssetServer>) {
     let mut sprite_sheet_config = HashMap::new();
@@ -63,18 +69,23 @@ pub fn initialize_player(mut commands: Commands, player_resources: Res<PlayerRes
             }),
             custom_size: Some(default_state.sprite_size),
             rect: Some(default_state.render_area),
-            anchor: Anchor::BottomCenter,
             ..Default::default()
         },
         animation_indices,
         PlayerTimers {
             animations: Timer::new(default_state.duration, TimerMode::Repeating),
         },
-        Transform::default(),
+        Transform::from_translation(Vec3::new(24.0, 24.0, 0.0)),
+    ));
+
+    commands.spawn((
+        // Get from tile size
+        PlayerTarget{ size: vec2(48.0, 48.0) },
+        Transform::from_translation(Vec3::new(-24.0, -24.0, 0.0)),
     ));
 }
 
-pub fn update_player_direction(mut reader: EventReader<PlayerDirectionChange>, mut direction: Single<&mut PlayerDirection>, ) {
+pub fn update_player_direction(mut reader: EventReader<PlayerDirectionChange>, mut direction: Single<&mut PlayerDirection>) {
     for event in reader.read() {
         let new_direction = event.0;
         if new_direction == direction.0 {
@@ -85,6 +96,36 @@ pub fn update_player_direction(mut reader: EventReader<PlayerDirectionChange>, m
     }
 }
 
+pub fn update_player_target(
+    player: Query<(&Transform, &PlayerDirection), With<Player>>,
+    target: Single<(&mut Transform, &PlayerTarget), Without<Player>>,
+) {
+    let (mut target_transform, target) = target.into_inner();
+    for (player_transform, player_direction) in player.iter() {
+        let mut translation = player_transform.translation.truncate();
+        translation.x -= target.size.x / 2.0;
+        translation.y += target.size.y / 2.0;
+        translation = (translation/ target.size).round() * target.size;
+        match player_direction.0 {
+            Direction::North => {
+                translation += target.size / 2.0;
+            },
+            Direction::South => {
+                translation.x += target.size.x / 2.0;
+                translation.y -= target.size.y + target.size.y/2.0;
+            }
+            Direction::East => {
+                translation.x += target.size.x + target.size.x / 2.0;
+                translation.y -= target.size.y / 2.0;
+            },
+            Direction::West => {
+                translation.x -= target.size.x / 2.0;
+                translation.y -= target.size.y / 2.0;
+            },
+        };
+        target_transform.translation = Vec3::from((translation, 0.0));
+    }
+}
 pub fn update_player_transform(
     mut reader: EventReader<PlayerMovementEvent>,
     player: Single<(&mut Transform, &Player)>,
