@@ -59,7 +59,9 @@ struct Controller {
 
 #[derive(Resource)]
 struct ControllerSettings {
-    pub controls: HashMap<Action, KeyCode>,
+    // Maybe hardcode to max of 2
+    pub controls: HashMap<Action, Vec<KeyCode>>,
+    // pub has_conflict: bool,
 }
 
 
@@ -69,7 +71,7 @@ struct ControllerSettings {
 impl ControllerSettings {
     pub fn actions_to_keys(&self, actions: [Action; 4]) -> Vec<KeyCode> {
         actions.iter()
-            .map(|action| self.controls[action].clone())
+            .flat_map(|action| self.controls[action].clone())
             .collect()
     }
 }

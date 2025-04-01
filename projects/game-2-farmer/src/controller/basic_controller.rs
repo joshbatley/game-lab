@@ -19,28 +19,24 @@ const MODIFIER_ACTIONS: [Action; 5] = [
 pub fn initialize_basic_controller(mut commands: Commands) {
     let mut controls = HashMap::new();
 
-    controls.insert(Action::Look(Direction::North), KeyCode::KeyW);
-    controls.insert(Action::Look(Direction::East), KeyCode::KeyD);
-    controls.insert(Action::Look(Direction::South), KeyCode::KeyS);
-    controls.insert(Action::Look(Direction::West), KeyCode::KeyA);
+    controls.insert(Action::Look(Direction::North),vec!(KeyCode::KeyW,KeyCode::ArrowUp));
+    controls.insert(Action::Look(Direction::East),vec!(KeyCode::KeyD, KeyCode::ArrowRight));
+    controls.insert(Action::Look(Direction::South),vec!(KeyCode::KeyS, KeyCode::ArrowDown));
+    controls.insert(Action::Look(Direction::West), vec!(KeyCode::KeyA, KeyCode::ArrowLeft));
 
-    // controls.insert(Action::Look(Direction::North), KeyCode::ArrowUp);
-    // controls.insert(Action::Look(Direction::East), KeyCode::ArrowRight);
-    // controls.insert(Action::Look(Direction::South), KeyCode::ArrowDown);
-    // controls.insert(Action::Look(Direction::West), KeyCode::ArrowLeft);
 
-    controls.insert(Action::Move(Direction::North), KeyCode::KeyW);
-    controls.insert(Action::Move(Direction::East), KeyCode::KeyD);
-    controls.insert(Action::Move(Direction::South), KeyCode::KeyS);
-    controls.insert(Action::Move(Direction::West), KeyCode::KeyA);
+    controls.insert(Action::Move(Direction::North), vec!(KeyCode::KeyW));
+    controls.insert(Action::Move(Direction::East), vec!(KeyCode::KeyD));
+    controls.insert(Action::Move(Direction::South), vec!(KeyCode::KeyS));
+    controls.insert(Action::Move(Direction::West),vec!( KeyCode::KeyA));
 
-    controls.insert(Action::Interact, KeyCode::KeyE);
-    controls.insert(Action::Modifier, KeyCode::ShiftLeft);
-    controls.insert(Action::Jump, KeyCode::Space);
-    controls.insert(Action::Pause, KeyCode::Escape);
-    controls.insert(Action::Sneak, KeyCode::ControlLeft);
+    controls.insert(Action::Interact, vec!(KeyCode::KeyE));
+    controls.insert(Action::Modifier, vec!(KeyCode::ShiftLeft));
+    controls.insert(Action::Jump,vec!( KeyCode::Space));
+    controls.insert(Action::Pause,vec!( KeyCode::Escape));
+    controls.insert(Action::Sneak, vec!(KeyCode::ControlLeft));
 
-    commands.insert_resource(ControllerSettings { controls });
+    commands.insert_resource(ControllerSettings { controls, has_conflict: false });
     commands.spawn(Controller{ last_move_action: Vec::new(), last_look_action: None });
 }
 
@@ -51,13 +47,13 @@ pub fn movement_controller(
     settings: Res<ControllerSettings>,
 ) {
     for direction in MOVE_DIRECTIONS {
-        let key = settings.controls[&direction];
+        let key = &settings.controls[&direction];
 
-        if keys.just_pressed(key) && keys.pressed(key) {
+        if keys.any_just_pressed(key.clone()) && keys.any_pressed(key.clone()) {
             controller.last_move_action.push(direction.clone());
         }
 
-        if keys.just_released(key)  {
+        if keys.any_just_released(key.clone())  {
             let action = controller.last_move_action.iter().position(|x| x == &direction).unwrap();
             controller.last_move_action.remove(action);
         }
@@ -77,15 +73,15 @@ pub fn look_controller(
     let directions = LOOK_DIRECTIONS;
 
     for direction in directions {
-        let key = settings.controls[&direction];
+        let key = &settings.controls[&direction];
 
-        if keys.pressed(key) {
+        if keys.any_pressed(key.clone()) {
             controller.last_look_action = Some(direction);
         }
 
-        let new_direction = if keys.just_pressed(key)  {
+        let new_direction = if keys.any_just_pressed(key.clone())  {
             Some(direction)
-        } else if keys.just_released(key) && keys.any_pressed(settings.actions_to_keys(directions)) {
+        } else if keys.any_just_released(key.clone()) && keys.any_pressed(settings.actions_to_keys(directions)) {
             controller.last_look_action
         } else {
             None
@@ -104,10 +100,12 @@ pub fn modifier_controller(
     settings: Res<ControllerSettings>,
 ) {
     for actions in MODIFIER_ACTIONS {
-        if keys.pressed(settings.controls[&actions])  {
+        let key = &settings.controls[&actions].clone();
+
+        if keys.any_pressed(key.clone())  {
             action_writer.send(ActionEvent(actions, 1));
         }
-        if keys.just_released(settings.controls[&actions]) {
+        if keys.any_just_released(key.clone()) {
             action_writer.send(ActionEvent(actions, 0));
         }
     }
