@@ -1,14 +1,15 @@
-use crate::asset_folder;
+use crate::asset_folder_hana;
 use crate::player::animation::{PlayerTimers, PlayerAnimationsIndices, PlayerAnimationState, AnimationState};
 use crate::player::controller::{PlayerDirectionChange, PlayerMovementEvent};
 use crate::player::sprite_sheet::{PlayerSpriteSheet, SPRITE_SHEET_CONFIG};
 use bevy::asset::{AssetServer, Assets};
 use bevy::prelude::*;
-use bevy::sprite::{Sprite};
+use bevy::sprite::{AlphaMode2d, Material2d, Sprite};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::time::Duration;
 use bevy::math::vec2;
+use bevy::render::render_resource::{AsBindGroup, ShaderRef};
 use crate::controller::Direction;
 
 #[derive(Component, Clone, Debug)]
@@ -37,7 +38,7 @@ pub fn initialize_player_resources(mut commands: Commands, mut texture_atlas_lay
     for ss in SPRITE_SHEET_CONFIG {
         let atlas = TextureAtlasLayout::from_grid(ss.tile_size, ss.columns, ss.rows, None, None);
         sprite_sheet_config.insert(ss.state, PlayerSpriteSheet::new(
-            asset_server.load(asset_folder(ss.image_url)),
+            asset_server.load(asset_folder_hana(ss.image_url)),
             texture_atlas_layouts.add(atlas),
             ss.columns,
             Duration::from_millis(ss.frame_duration),
@@ -49,9 +50,36 @@ pub fn initialize_player_resources(mut commands: Commands, mut texture_atlas_lay
     commands.insert_resource(PlayerResource { sprite_sheet_config });
 }
 
-pub fn initialize_player(mut commands: Commands, player_resources: Res<PlayerResource>) {
+#[derive(Asset, TypePath, AsBindGroup ,Debug, Clone)]
+pub struct CustomMaterial {
+
+}
+
+impl Material2d for CustomMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shadow.wgsl".into()
+    }
+    fn alpha_mode(&self) -> AlphaMode2d {
+        AlphaMode2d::Blend
+    }
+}
+
+#[derive(Component)]
+pub struct Shadow;
+
+pub fn initialize_player(
+    mut commands: Commands, player_resources: Res<PlayerResource>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<CustomMaterial>>,
+) {
     let default_state = player_resources.sprite_sheet_config.get(&AnimationState::default()).unwrap();
     let animation_indices = PlayerAnimationsIndices::from_dir(Direction::default(), default_state.columns);
+    commands.spawn((
+       Shadow,
+        Mesh2d(meshes.add(Mesh::from(Circle::new(30.0)))),
+        MeshMaterial2d(materials.add(CustomMaterial{})),
+        Transform::from_translation(Vec3::new(1936.0, -1936.0, 9.0)),
+    ));
 
     commands.spawn((
         Player {
@@ -75,13 +103,13 @@ pub fn initialize_player(mut commands: Commands, player_resources: Res<PlayerRes
         PlayerTimers {
             animations: Timer::new(default_state.duration, TimerMode::Repeating),
         },
-        Transform::from_translation(Vec3::new(24.0, 24.0, 0.0)),
+        Transform::from_translation(Vec3::new(1936.0, -1936.0, 10.0)),
     ));
 
     commands.spawn((
         // Get from tile size
-        PlayerTarget{ size: vec2(48.0, 48.0) },
-        Transform::from_translation(Vec3::new(-24.0, -24.0, 0.0)),
+        PlayerTarget{ size: vec2(32.0, -32.0) },
+        Transform::default(),
     ));
 }
 
@@ -106,13 +134,14 @@ pub fn update_player_target(
         translation.x -= target.size.x / 2.0;
         translation.y += target.size.y / 2.0;
         translation = (translation/ target.size).round() * target.size;
+
         match player_direction.0 {
             Direction::North => {
-                translation += target.size / 2.0;
-            },
-            Direction::South => {
                 translation.x += target.size.x / 2.0;
                 translation.y -= target.size.y + target.size.y/2.0;
+            },
+            Direction::South => {
+                translation += target.size / 2.0;
             }
             Direction::East => {
                 translation.x += target.size.x + target.size.x / 2.0;
@@ -126,6 +155,13 @@ pub fn update_player_target(
         target_transform.translation = Vec3::from((translation, 0.0));
     }
 }
+
+pub fn move_shadow(player_transform: Query<&Transform, With<Player>>, shadow: Single<(&mut Transform, &Shadow), Without<Player>>,) {
+    let (mut transform, _) = shadow.into_inner();
+    transform.translation.x = player_transform.single().translation.x - 1.0;
+    transform.translation.y = player_transform.single().translation.y - 6.0;
+}
+
 pub fn update_player_transform(
     mut reader: EventReader<PlayerMovementEvent>,
     player: Single<(&mut Transform, &Player)>,

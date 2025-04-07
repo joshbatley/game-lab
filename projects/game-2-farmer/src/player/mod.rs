@@ -1,7 +1,6 @@
 pub mod plugin;
-mod player;
+pub mod player;
 mod animation;
 mod debug;
 mod controller;
 mod sprite_sheet;
-

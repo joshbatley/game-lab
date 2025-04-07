@@ -4,7 +4,7 @@ use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{IntoSystemConfigs, Res, ResMut, Resource};
 use bevy::time::common_conditions::on_timer;
 use bevy_egui::{egui, EguiContexts};
-use crate::debug_plugin::debug_enable;
+use crate::debug_plugin::{debug_enable, DebugState};
 
 #[derive(Resource)]
 struct InternalDiagnostics {
@@ -29,8 +29,13 @@ fn update_fps(mut diagnostics: ResMut<InternalDiagnostics>, store: Res<Diagnosti
     }
 }
 
-fn diagnostics(mut ctx: EguiContexts, diagnostics: Res<InternalDiagnostics>) {
-    egui::TopBottomPanel::top("FPS Display").show(ctx.ctx_mut(), |ui| {
+fn diagnostics(mut ctx: EguiContexts, diagnostics: Res<InternalDiagnostics>, mut debug_state: ResMut<DebugState>) {
+    egui::Window::new("Diagnostics").show(ctx.ctx_mut(), |ui| {
         ui.label(format!("FPS: {:.2}", diagnostics.fps));
+        for (key, value) in debug_state.keys.clone() {
+            if ui.button(key.clone()).clicked() {
+                debug_state.keys.insert(key.clone(), !value.clone());
+            }
+        }
     });
 }

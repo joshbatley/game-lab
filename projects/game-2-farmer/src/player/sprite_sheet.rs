@@ -12,7 +12,7 @@ const SPRITE_SHEET_LARGE_COLS: u32 = 8;
 const SPRITE_SHEET_SMALL_COLS: u32 = 4;
 const SPRITE_SHEET_ROWS: u32 = 4;
 // const PLAYER_SINGLE_ROWS: u32 = 1;
-const SPRITE_SIZE: (f32, f32) = (48.0, 48.0);
+const SPRITE_SIZE: (f32, f32) = (32.0, 32.0);
 
 pub struct SpriteSheetMeta {
     pub state: AnimationState,

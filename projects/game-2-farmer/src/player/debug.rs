@@ -18,10 +18,11 @@ impl Display for AnimationState {
     }
 }
 
-pub fn draw_target_block(mut gizmos: Gizmos, target: Single<&Transform, With<PlayerTarget>>) {
-    let translation = target.translation.truncate();
+pub fn draw_target_block(mut gizmos: Gizmos, target: Single<(&Transform, &PlayerTarget)>) {
+    let (transform, player_target) = target.into_inner();
+    let translation = transform.translation.truncate();
     gizmos.primitive_2d(
-            &Rectangle::new(48.0, 48.0),
+            &Rectangle::new(player_target.size.x, player_target.size.y),
             Isometry2d::from_translation(translation),
             RED,
         );

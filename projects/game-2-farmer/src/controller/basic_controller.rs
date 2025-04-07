@@ -36,7 +36,7 @@ pub fn initialize_basic_controller(mut commands: Commands) {
     controls.insert(Action::Pause,vec!( KeyCode::Escape));
     controls.insert(Action::Sneak, vec!(KeyCode::ControlLeft));
 
-    commands.insert_resource(ControllerSettings { controls, has_conflict: false });
+    commands.insert_resource(ControllerSettings { controls });
     commands.spawn(Controller{ last_move_action: Vec::new(), last_look_action: None });
 }
 
@@ -54,8 +54,9 @@ pub fn movement_controller(
         }
 
         if keys.any_just_released(key.clone())  {
-            let action = controller.last_move_action.iter().position(|x| x == &direction).unwrap();
-            controller.last_move_action.remove(action);
+            if let Some(action) = controller.last_move_action.iter().position(|x| x == &direction) {
+                controller.last_move_action.remove(action);
+            }
         }
     }
 
