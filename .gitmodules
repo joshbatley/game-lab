@@ -1,0 +1,3 @@
+[submodule "assets/internal"]
+	path = assets/internal
+	url = git@github.com:joshbatley/GameAssets.git
