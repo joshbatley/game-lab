@@ -61,7 +61,7 @@ fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, map_meta
             index: 16,
         },
         Sprite {
-            image:  asset_server.load("dungeon-stuff/characters/archer/archer-idle-front.png"),
+            image:  asset_server.load("internal/dungeon-stuff/characters/archer/archer-idle-front.png"),
             custom_size: Some(Vec2::splat(32.0)),
             rect: Some(Rect::new(0.0, 0.0, 24.0, 24.0)),
             ..Default::default()

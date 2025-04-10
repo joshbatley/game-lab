@@ -110,7 +110,7 @@ impl MapGenerator {
     pub fn new(level_data: Vec<Vec<usize>>) -> Self {
         MapGenerator {
             size: (15, 15),
-            atlas_path: String::from("dungeon-stuff/tiles/dungeon-tiles.png"),
+            atlas_path: String::from("internal/dungeon-stuff/tiles/dungeon-tiles.png"),
             columns: 12,
             rows: 10,
             level_data,

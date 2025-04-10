@@ -74,7 +74,7 @@ fn load_and_set_egui_fonts(contexts: EguiContexts) {
     contexts.ctx().all_styles_mut(move |style| style.text_styles = text_styles.clone());
     contexts.ctx().add_font(FontInsert::new(
         "debugger_font",
-        egui::FontData::from_static(include_bytes!("../../../assets/fonts/debug/debug.ttf")),
+        egui::FontData::from_static(include_bytes!("../../../assets/internal/fonts/debug/debug.ttf")),
         vec![
             InsertFontFamily {
                 family: Proportional,

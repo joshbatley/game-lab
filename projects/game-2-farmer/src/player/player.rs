@@ -57,7 +57,7 @@ pub struct CustomMaterial {
 
 impl Material2d for CustomMaterial {
     fn fragment_shader() -> ShaderRef {
-        "shadow.wgsl".into()
+        "shaders/shadow.wgsl".into()
     }
     fn alpha_mode(&self) -> AlphaMode2d {
         AlphaMode2d::Blend

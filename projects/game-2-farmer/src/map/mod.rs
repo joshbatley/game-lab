@@ -52,7 +52,7 @@ struct MapState {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,) {
-    let handle = asset_server.load("maps/game2/tiled/level_0.json");
+    let handle = asset_server.load("internal/maps/game2/tiled/level_0.json");
     let image = asset_server.load(asset_folder_sprout("tilesets/grass/grass.png"));
     let water = asset_server.load(asset_folder_sprout("tilesets/water.png"));
     let atlas = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(UVec2::splat(16),39,7,None, None));

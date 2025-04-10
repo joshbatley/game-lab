@@ -31,11 +31,11 @@ fn main() {
 }
 
 fn asset_folder_hana(folder: &str) -> String {
-    format!("{}/{}", ASSET_ROOT_FOLDER_HANA, folder)
+    format!("internal/{}/{}", ASSET_ROOT_FOLDER_HANA, folder)
 }
 
 fn asset_folder_sprout(folder: &str) -> String {
-    format!("{}/{}", ASSET_ROOT_FOLDER_SPROUT, folder)
+    format!("internal/{}/{}", ASSET_ROOT_FOLDER_SPROUT, folder)
 }
 
 // fn gizmo_grid(mut gizmos: Gizmos, q: Single<(&Camera, &Transform)>) {

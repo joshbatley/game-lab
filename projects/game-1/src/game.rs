@@ -69,7 +69,7 @@ fn create_coins(
     mut game: ResMut<Game>,
     asset_server: Res<AssetServer>,
 ) {
-    let coin_handle = asset_server.load("dungeon-stuff/objects/coins.png");
+    let coin_handle = asset_server.load("internal/dungeon-stuff/objects/coins.png");
     for event in reader.read() {
         if event.0 != 47 {
             continue;

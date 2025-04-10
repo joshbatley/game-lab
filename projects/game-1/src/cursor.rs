@@ -37,7 +37,7 @@ fn setup_cursor(mut commands: Commands, mut window: Single<&mut Window>, asset_s
     commands.spawn((
         Cursor,
         Sprite {
-            image: asset_server.load("sprout-lands/ui/icons/select.png"),
+            image: asset_server.load("internal/sprout-lands/ui/icons/select.png"),
             custom_size: Some(Vec2::new(32.0, 32.0)),
             rect: Some(Rect::new(0.0, 0.0, 32.0, 32.0)),
             ..Default::default()
