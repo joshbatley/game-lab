@@ -1,5 +1,5 @@
 use bevy::app::{App, Plugin, Startup, Update};
-use bevy::color::palettes::basic::BLUE;
+use bevy::color::palettes::basic::PURPLE;
 use bevy::math::Isometry2d;
 use bevy::prelude::{Camera2d, Commands, GizmoPrimitive2d, Gizmos, IntoSystemConfigs, Rectangle, Single, Transform, With, Without};
 use game_lab_utils::debug_plugin::debug_enable;
@@ -20,12 +20,9 @@ const CAMERA_ZONE: f32 = 200.0;
 pub fn initialize_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,
-
-        // Transform::from_xyz(0.0, 0.0, 0.0)
         Transform::from_xyz(1920.0, -1920.0, 0.0) // play pos
     ));
 }
-
 
 pub fn move_camera(camera: Single<(&Camera2d, &mut Transform), Without<Player>>, player: Single<(&Player, &Transform), With<Player>>) {
     let (_, mut cam_transform) = camera.into_inner();
@@ -55,18 +52,12 @@ pub fn move_camera(camera: Single<(&Camera2d, &mut Transform), Without<Player>>,
     if player_transform.translation.y > borders[3] {
         cam_transform.translation.y += speed;
     }
-
-
-    // cam_transform.translation = player_transform.translation;
-    // cam_transform.translation.y = player_transform.translation.y;
-
 }
 
 pub fn debug_camera(mut gizmos: Gizmos, camera: Single<&mut Transform, With<Camera2d>>) {
-
     gizmos.primitive_2d(
         &Rectangle::new(CAMERA_ZONE, CAMERA_ZONE),
         Isometry2d::from_translation(camera.translation.truncate()),
-        BLUE,
+        PURPLE,
     );
 }
